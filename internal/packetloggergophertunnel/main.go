@@ -213,7 +213,8 @@ func handleConn(conn *minecraft.Conn, listener *minecraft.Listener, remoteAddres
 	serverConn, err := minecraft.Dialer{
 		TokenSource: src,
 		ClientData:  conn.ClientData(),
-	}.Dial("raknet", remoteAddress)
+	}.DialTimeout("raknet", remoteAddress, time.Minute*5)
+
 	if err != nil {
 		panic(err)
 	}
@@ -380,15 +381,27 @@ func (context loggerContext) PacketToLog(pk packet.Packet) (text string, err err
 				prefix = "=========="
 				suffix = " PACKET " + prefix
 			)
-			text += packetTypeName + "\n"
+			fmt.Println(packetTypeName)
 
 			if pkMarshal, err2 := json.MarshalIndent(pk, "", "    "); err2 != nil {
 				err = err2
-				text += err.Error()
+				fmt.Println(err.Error())
 			} else {
-				text += prefix + "BEGIN " + suffix + "\n"
-				text += string(pkMarshal)
-				text += prefix + "END " + suffix
+				fmt.Println(prefix + "BEGIN " + suffix)
+
+				if modalForm, ok := pk.(*packet.ModalFormRequest); ok {
+					var formDataJSON interface{}
+					if err := json.Unmarshal(modalForm.FormData, &formDataJSON); err == nil {
+						formDataPretty, _ := json.MarshalIndent(formDataJSON, "", "    ")
+						fmt.Printf("{\n    \"FormID\": %d,\n    \"FormData\": %s\n}\n", modalForm.FormID, string(formDataPretty))
+					} else {
+						fmt.Println(string(pkMarshal))
+					}
+				} else {
+					fmt.Println(string(pkMarshal))
+				}
+
+				fmt.Println(prefix + "END " + suffix)
 			}
 			return
 		}

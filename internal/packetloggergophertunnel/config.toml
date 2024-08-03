@@ -1,0 +1,13 @@
+[Connection]
+LocalAddress = '0.0.0.0:19132'
+RemoteAddress = '51.89.235.143:19132'
+
+[PacketLogger]
+ShowPacketType = ['ModalFormRequest', 'ModalFormResponse']
+
+[PacketLogger.ReportHiddenPacketCountDelay]
+Receive = 5000000000
+Send = 5000000000
+
+[Reload]
+ConfigAutoReload = false
